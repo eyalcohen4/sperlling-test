@@ -32,7 +32,9 @@ class App extends Component {
     highlightedY: null,
     shouldHideChar: false,
     shouldHideMetric: false,
-    guessedChar: ''
+    guessedChar: '',
+    round: 0,
+    corrects: 0,
   }
 
   componentDidMount() {
@@ -65,13 +67,28 @@ class App extends Component {
       this.setState({
         shouldHideChar: false
       });
-    }, 500);
+    }, 250);
 
     setTimeout(() => {
       this.setState({
         shouldHideMetric: true
       })
-    }, 750)
+    }, 500)
+  }
+
+  startNewRound = () => {
+    const { metric, guessedChar, highlightedX, highlightedY } = this.state;
+
+    const isCorrect = guessedChar && guessedChar === metric[highlightedX][highlightedY];
+
+    this.setState(prevState => ({
+      round: prevState.round + 1,
+      shouldHideMetric: false,
+      corrects: isCorrect ? prevState.corrects + 1 : prevState.corrects,
+      guessedChar: ''
+    }), () => {
+      this.setMetric();
+    })
   }
 
   handleGuessedChar = ({ target: { value }}) => {
@@ -83,15 +100,16 @@ class App extends Component {
   }
 
   render() {
-    const { metric, highlightedY, highlightedX, shouldHideChar } = this.state;
+    const { metric, corrects, round, highlightedY, highlightedX, shouldHideChar } = this.state;
 
     return (
       <div className="App">
+        {corrects} / {round}
         {
           this.state.shouldHideMetric ? 
-          <div>
+          <div className="controls">
             <input maxLength="1" value={this.state.guessedChar} onChange={this.handleGuessedChar} />
-            {this.state.guessedChar && this.state.guessedChar === metric[highlightedX][highlightedY] ? 'WON' : '...'}
+            <button onClick={this.startNewRound}>Next Round</button>
           </div> :
           this.state.metric && 
           this.state.metric.length ? 
